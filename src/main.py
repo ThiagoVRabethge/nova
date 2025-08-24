@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from src.handle_on_startup import handle_on_startup
 from src.middlewares.cors import cors
-# from src.routes.private import private
+from src.routes.private import private
 from src.routes.public import public
 
 app = FastAPI()
@@ -27,5 +27,5 @@ async def root_info():
 for public_route in public:
     app.include_router(public_route)
 
-# for private_route in private:
-#     app.include_router(private_route)
+for private_route in private:
+    app.include_router(private_route)
