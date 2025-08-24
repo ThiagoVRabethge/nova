@@ -2,7 +2,7 @@ import jwt
 from decouple import config
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jwt import PyJWTError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 JWT_SECRET = config("JWT_SECRET")
 
@@ -21,20 +21,27 @@ async def verify_jwt_token(
 
         user_id: str = payload.get("sub")
 
-        login: str = payload.get("login")
+        email: str = payload.get("email")
 
-        if user_id is None or login is None:
+        if not user_id or not email:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token inválido",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return {"user_id": user_id, "login": login}
+        return {"user_id": user_id, "email": email}
 
-    except PyJWTError:
+    except ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido ou expirado",
+            detail="Token expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido",
             headers={"WWW-Authenticate": "Bearer"},
         )
