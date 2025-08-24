@@ -17,6 +17,30 @@ JWT_ALGORITHM = config("JWT_ALGORITHM")
 JWT_EXPIRE_MINUTES = int(config("JWT_EXPIRE_MINUTES"))
 
 
+async def handle_users_register(user: Users):
+    async with AsyncSession(engine) as session:
+        result = await session.exec(select(Users).where(Users.email == user.email))
+
+        existing_user = result.first()
+
+        if existing_user:
+            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+
+        hashed_password = sha256_crypt.hash(user.password)
+
+        user.password = hashed_password
+
+        session.add(user)
+
+        await session.commit()
+
+        await session.refresh(user)
+
+        user_data = user.dict(exclude={"password"})
+
+        return {"message": "Usuário registrado com sucesso", "user_data": user_data}
+
+
 async def handle_users_login(user: Users):
     async with AsyncSession(engine) as session:
         result = await session.exec(select(Users).where(Users.email == user.email))
