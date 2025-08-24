@@ -1,9 +1,14 @@
 from fastapi import APIRouter
 
-from src.controllers.users import handle_users_login
+from src.controllers.users import handle_users_login, handle_users_register
 from src.models.users import Users
 
 users_routes = APIRouter()
+
+
+@users_routes.post("/users/register")
+async def users_register(user: Users):
+    return await handle_users_register(user)
 
 
 @users_routes.post("/users/login")
